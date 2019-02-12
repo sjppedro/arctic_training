@@ -6,3 +6,6 @@ Data Science workshop Arctic Data Center
 * Notes
 
 Made some changes from RStudio.
+
+Changesssssss
+
