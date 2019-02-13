@@ -162,8 +162,8 @@ head(catch_original)</code></pre>
 <p>Remove the “All” and “notesRegCode” columns</p>
 <p>ctrl+shit+m : pipe operator shortcut %&gt;%</p>
 <pre class="r"><code>catch_long &lt;- catch_original %&gt;%
-  select(Region, Year, Chinook, Sockeye, Coho, Pink, Chum) %&gt;% # or select(-All, -notesRegCode)
-  gather(key = species, value = catch, -Region, -Year) # Move from wide to long; Region and Year are not going to be gathered into the species and catch columns
+  select(Region, Year, Chinook, Sockeye, Coho, Pink, Chum) %&gt;% # or select(-All,-notesRegCode)
+  gather(key = species, value = catch, -Region, -Year) # Move from wide to long; Region and                                                             Year are not going to be gathered                                                               into the species and catch columns
 
 
 head(catch_long)</code></pre>
@@ -186,6 +186,67 @@ head(catch_wide)</code></pre>
 ## 4    ALU 1914       0    0    0    0       0
 ## 5    ALU 1915       0    0    0    0       0
 ## 6    ALU 1916       0    0    1  180      76</code></pre>
+</div>
+<div id="clean-up-our-data" class="section level2">
+<h2>Clean up our data</h2>
+<ul>
+<li>rename catch to catch_thousands</li>
+<li>change the catch column to numeric</li>
+<li>create a new catch column in units ‘#’ of fish</li>
+</ul>
+<pre class="r"><code>catch_clean &lt;- catch_long %&gt;% 
+  rename(catch_thousands = catch) %&gt;% # rename column catch
+  mutate(catch_thousands = ifelse(catch_thousands == &quot;I&quot;, 1, catch_thousands)) %&gt;% # replace                                      the &quot;I&quot; mistake in row 401 (error found below) for 1. Keep                                       the other rows
+  mutate(catch_thousands = as.numeric(catch_thousands)) %&gt;%
+  mutate(catch = catch_thousands*1000) %&gt;% # add new column catch by multiplying                                                            catch_thousands by 1000
+  select(-catch_thousands) #if we don't want this column
+
+head(catch_clean)</code></pre>
+<pre><code>##   Region Year species catch
+## 1    SSE 1886 Chinook     0
+## 2    SSE 1887 Chinook     0
+## 3    SSE 1888 Chinook     0
+## 4    SSE 1889 Chinook     0
+## 5    SSE 1890 Chinook     0
+## 6    SSE 1891 Chinook     0</code></pre>
+</div>
+<div id="split---apply---combine" class="section level2">
+<h2>Split - Apply - Combine</h2>
+<ul>
+<li>calculate mean catch by species</li>
+</ul>
+<pre class="r"><code>species_mean &lt;- catch_clean %&gt;% 
+  group_by(species, Year) %&gt;%  # needs to be used with the functions summarize or mutate
+  summarise(catch_mean = mean(catch), 
+            num_obs = n()) # calculate mean and number of observations
+
+year_mean &lt;- catch_clean %&gt;% 
+  group_by(Year) %&gt;% 
+  summarise(catch_mean = mean(catch), stand_dev = sd(catch)) %&gt;% 
+  arrange(-Year) %&gt;%  # arrange by highest to lowest (only for numeric). Could use desc() to                            change the order of species (categorical or numeric)
+  filter(Year &lt;= 1990 &amp; Year &gt;= 1960) # only year above 1990
+
+head(species_mean)</code></pre>
+<pre><code>## # A tibble: 6 x 4
+## # Groups:   species [1]
+##   species  Year catch_mean num_obs
+##   &lt;chr&gt;   &lt;int&gt;      &lt;dbl&gt;   &lt;int&gt;
+## 1 Chinook  1878          0       1
+## 2 Chinook  1879          0       1
+## 3 Chinook  1880          0       1
+## 4 Chinook  1881          0       1
+## 5 Chinook  1882          0       2
+## 6 Chinook  1883          0       3</code></pre>
+<pre class="r"><code>head(year_mean)</code></pre>
+<pre><code>## # A tibble: 6 x 3
+##    Year catch_mean stand_dev
+##   &lt;int&gt;      &lt;dbl&gt;     &lt;dbl&gt;
+## 1  1990   1824212.  6589930.
+## 2  1989   1813259.  6417541.
+## 3  1988   1183129.  2816324.
+## 4  1987   1136729.  3797968.
+## 5  1986   1517012.  5396467.
+## 6  1985   1721871.  5414097.</code></pre>
 </div>
 </div>
 <div id="join-the-region-definitions" class="section level1">
