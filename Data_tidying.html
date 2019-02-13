@@ -142,10 +142,9 @@ library(tidyr)
 <ul>
 <li>move from wide to long</li>
 </ul></li>
-<li>General QA</li>
+<li><p>General QA</p>
+<h2 id="data-citation">Data citation</h2></li>
 </ul>
-<div id="data-citation" class="section level2">
-<h2>Data citation</h2>
 <p>[Mike Byerly. Alaska commercial salmon catches by management region (1886- 1997). Gulf of Alaska Data Portal. df35b.304.2.] (<a href="https://knb.ecoinformatics.org/view/df35b.304.2" class="uri">https://knb.ecoinformatics.org/view/df35b.304.2</a>)</p>
 <pre class="r"><code># Read data from a url - from the an online data bank
 
@@ -186,7 +185,6 @@ head(catch_wide)</code></pre>
 ## 4    ALU 1914       0    0    0    0       0
 ## 5    ALU 1915       0    0    0    0       0
 ## 6    ALU 1916       0    0    1  180      76</code></pre>
-</div>
 <div id="clean-up-our-data" class="section level2">
 <h2>Clean up our data</h2>
 <ul>
@@ -251,9 +249,65 @@ head(species_mean)</code></pre>
 </div>
 <div id="join-the-region-definitions" class="section level1">
 <h1>Join the Region Definitions</h1>
+<pre class="r"><code>region_defs &lt;- read.csv(url(&quot;https://knb.ecoinformatics.org/knb/d1/mn/v2/object/df35b.303.1&quot;,
+                            method = &quot;libcurl&quot;), stringsAsFactors = FALSE) %&gt;% 
+    select(code, mgmtArea) #selects only the columns we are interested in
+
+head(region_defs)</code></pre>
+<pre><code>##      code                                  mgmtArea
+## 1     GSE              Unallocated Southeast Alaska
+## 2     NSE                 Northern Southeast Alaska
+## 3     SSE                 Southern Southeast Alaska
+## 4     YAK                                   Yakutat
+## 5 PWSmgmt      Prince William Sound Management Area
+## 6     BER Bering River Subarea Copper River Subarea</code></pre>
+<p>Left join</p>
+<pre class="r"><code>catch_joined &lt;- left_join(catch_clean, region_defs, by = c(&quot;Region&quot; = &quot;code&quot;))
+
+# could also do: catch_joined &lt;- catch_clean %&gt;%
+                # left_join(region_defs)
+
+head(catch_joined)</code></pre>
+<pre><code>##   Region Year species catch                  mgmtArea
+## 1    SSE 1886 Chinook     0 Southern Southeast Alaska
+## 2    SSE 1887 Chinook     0 Southern Southeast Alaska
+## 3    SSE 1888 Chinook     0 Southern Southeast Alaska
+## 4    SSE 1889 Chinook     0 Southern Southeast Alaska
+## 5    SSE 1890 Chinook     0 Southern Southeast Alaska
+## 6    SSE 1891 Chinook     0 Southern Southeast Alaska</code></pre>
 </div>
 <div id="miscelaneous-functions" class="section level1">
 <h1>Miscelaneous Functions</h1>
+<p>Separate and unite</p>
+<p>Using some dummy data</p>
+<pre class="r"><code>dates_df &lt;- data.frame(date = c(&quot;5/24/1930&quot;,
+                                &quot;5/25/1930&quot;,
+                                &quot;5/26/1930&quot;,
+                                &quot;5/27/1930&quot;,
+                                &quot;5/28/1930&quot;),
+                       stringsAsFactors = FALSE)</code></pre>
+<p>Separate - one column to different columns</p>
+<pre class="r"><code>dates_split &lt;- dates_df %&gt;% 
+  separate(date, into = c(&quot;month&quot;, &quot;day&quot;, &quot;year&quot;), sep = &quot;/&quot;, remove = F) #remove equals false                                                                 will keep the original column
+
+head(dates_split)</code></pre>
+<pre><code>##        date month day year
+## 1 5/24/1930     5  24 1930
+## 2 5/25/1930     5  25 1930
+## 3 5/26/1930     5  26 1930
+## 4 5/27/1930     5  27 1930
+## 5 5/28/1930     5  28 1930</code></pre>
+<p>Unite</p>
+<pre class="r"><code>dates_unite &lt;- dates_split %&gt;% 
+  unite(date_iso, year, month, day, sep = &quot;-&quot;)
+
+head(dates_unite)</code></pre>
+<pre><code>##        date  date_iso
+## 1 5/24/1930 1930-5-24
+## 2 5/25/1930 1930-5-25
+## 3 5/26/1930 1930-5-26
+## 4 5/27/1930 1930-5-27
+## 5 5/28/1930 1930-5-28</code></pre>
 </div>
 
 

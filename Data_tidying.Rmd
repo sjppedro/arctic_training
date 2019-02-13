@@ -25,7 +25,7 @@ library(tidyr)
     - move from wide to long
 * General QA
 
-## Data citation
+    ## Data citation
 
 [Mike Byerly. Alaska commercial salmon catches by management region (1886- 1997). Gulf of Alaska Data Portal. df35b.304.2.] (https://knb.ecoinformatics.org/view/df35b.304.2)
 
@@ -122,10 +122,63 @@ head(year_mean)
 
 # Join the Region Definitions
 
+```{r}
+region_defs <- read.csv(url("https://knb.ecoinformatics.org/knb/d1/mn/v2/object/df35b.303.1",
+                            method = "libcurl"), stringsAsFactors = FALSE) %>% 
+    select(code, mgmtArea) #selects only the columns we are interested in
+
+head(region_defs)
+```
+
+Left join
+
+```{r}
+catch_joined <- left_join(catch_clean, region_defs, by = c("Region" = "code"))
+
+# could also do: catch_joined <- catch_clean %>%
+                # left_join(region_defs)
+
+head(catch_joined)
+```
+
 
 # Miscelaneous Functions
 
+Separate and unite
 
+Using some dummy data 
+ 
+```{r}
+dates_df <- data.frame(date = c("5/24/1930",
+                                "5/25/1930",
+                                "5/26/1930",
+                                "5/27/1930",
+                                "5/28/1930"),
+                       stringsAsFactors = FALSE)
+```
+
+
+Separate - one column to different columns
+
+```{r}
+dates_split <- dates_df %>% 
+  separate(date, into = c("month", "day", "year"), sep = "/", remove = F) #remove equals false                                                                 will keep the original column
+
+head(dates_split)
+
+  
+```
+
+
+Unite
+
+
+```{r}
+dates_unite <- dates_split %>% 
+  unite(date_iso, year, month, day, sep = "-")
+
+head(dates_unite)
+```
 
 
 
