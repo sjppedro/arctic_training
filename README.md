@@ -15,4 +15,9 @@ sss
 
 This alterations are now part of the branch training.
 
+<<<<<<< HEAD
 This one is the master.
+=======
+
+Second try to branch out. And another change.
+>>>>>>> branch_training
