@@ -48,8 +48,8 @@ ctrl+shit+m : pipe operator shortcut %>%
 ```{r}
 
 catch_long <- catch_original %>%
-  select(Region, Year, Chinook, Sockeye, Coho, Pink, Chum) %>% # or select(-All, -notesRegCode)
-  gather(key = species, value = catch, -Region, -Year) # Move from wide to long; Region and Year are not going to be gathered into the species and catch columns
+  select(Region, Year, Chinook, Sockeye, Coho, Pink, Chum) %>% # or select(-All,-notesRegCode)
+  gather(key = species, value = catch, -Region, -Year) # Move from wide to long; Region and                                                             Year are not going to be gathered                                                               into the species and catch columns
 
 
 head(catch_long)
@@ -67,8 +67,61 @@ head(catch_wide)
 
 ```
 
+## Clean up our data
+
+* rename catch to catch_thousands
+* change the catch column to numeric
+* create a new catch column in units '#' of fish
+
+```{r}
+catch_clean <- catch_long %>% 
+  rename(catch_thousands = catch) %>% # rename column catch
+  mutate(catch_thousands = ifelse(catch_thousands == "I", 1, catch_thousands)) %>% # replace                                      the "I" mistake in row 401 (error found below) for 1. Keep                                       the other rows
+  mutate(catch_thousands = as.numeric(catch_thousands)) %>%
+  mutate(catch = catch_thousands*1000) %>% # add new column catch by multiplying                                                            catch_thousands by 1000
+  select(-catch_thousands) #if we don't want this column
+
+head(catch_clean)
+
+```
+
+
+
+```{r, eval = FALSE, echo = FALSE}
+#Investigate why I am getting NAs - look for where as.numeric failed 
+
+test <- as.numeric(catch_long$catch)
+i <- which(is.na(test)==TRUE) # which values in the test are NAs when tured to numeric
+i
+catch_long[i,]
+
+```
+
+## Split - Apply - Combine
+
+* calculate mean catch by species
+
+```{r}
+
+species_mean <- catch_clean %>% 
+  group_by(species, Year) %>%  # needs to be used with the functions summarize or mutate
+  summarise(catch_mean = mean(catch), 
+            num_obs = n()) # calculate mean and number of observations
+
+year_mean <- catch_clean %>% 
+  group_by(Year) %>% 
+  summarise(catch_mean = mean(catch), stand_dev = sd(catch)) %>% 
+  arrange(-Year) %>%  # arrange by highest to lowest (only for numeric). Could use desc() to                            change the order of species (categorical or numeric)
+  filter(Year <= 1990 & Year >= 1960) # only year above 1990
+
+head(species_mean)
+head(year_mean)
+
+```
+
 
 # Join the Region Definitions
+
 
 # Miscelaneous Functions
 
