@@ -1,0 +1,39 @@
+---
+title: "Tidy data"
+author: "Sara Pedro"
+date: "February 13, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, warning=FALSE, message=FALSE}
+library(dplyr)
+library(tidyr)
+
+# to call stats filter - stats::filter()
+# the code above does not let warnings and messages show on the markdown version
+```
+
+
+# Reformat catch data
+
+* Remove "All"" column
+* Create "Species" column
+    - move from wide to long
+* General QA
+
+
+# Join the Region Definitions
+
+# Miscelaneous Functions
+
+```{r}
+
+salmon1 <- read.csv("C:/Users/SaraPedro/Desktop/Arctic_Data_Science/df35b.302.1.csv")
+salmon2 <- read.csv("C:/Users/SaraPedro/Desktop/Arctic_Data_Science/df35b.303.1.csv")
+
+```
+
