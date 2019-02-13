@@ -48,12 +48,22 @@ ctrl+shit+m : pipe operator shortcut %>%
 ```{r}
 
 catch_long <- catch_original %>%
-  select(Region, Year, Chinook, Sockeye, Coho, Pink, Chum)
+  select(Region, Year, Chinook, Sockeye, Coho, Pink, Chum) %>% # or select(-All, -notesRegCode)
+  gather(key = species, value = catch, -Region, -Year) # Move from wide to long; Region and Year are not going to be gathered into the species and catch columns
 
-#or
-# select(-All, -notesRegCode)
 
 head(catch_long)
+
+```
+
+
+Opposite code of gather is spread - gets data set back from long to wide
+
+```{r}
+catch_wide <- catch_long %>% 
+  spread (key = species, value = catch)
+
+head(catch_wide)
 
 ```
 
