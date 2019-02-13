@@ -14,3 +14,5 @@ more changes
 sss
 
 This alterations are now part of the branch training.
+
+This one is the master.
