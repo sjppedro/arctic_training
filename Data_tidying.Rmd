@@ -180,6 +180,23 @@ dates_unite <- dates_split %>%
 head(dates_unite)
 ```
 
+Change format of date
 
+```{r}
+library(stringr)
+
+str_pad("5", slide = "left", pad = "0") # make date in format e.g. 2019/05/10 instead of                                                 2019/5/10
+
+```
+
+Save the new dataset in a csv file
+
+```{r}
+
+write.csv(catch_clean, "catch_clean.csv", row.names = F)
+
+```
+
+If I want to create row names I will have to do it outside of the dplyr/tidyr coding. Use the function rownames(). The row names have to be unique for the function to work.
 
 
