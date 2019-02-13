@@ -20,20 +20,50 @@ library(tidyr)
 
 # Reformat catch data
 
-* Remove "All"" column
+* Remove "All" and "notes" columns
 * Create "Species" column
     - move from wide to long
 * General QA
+
+## Data citation
+
+[Mike Byerly. Alaska commercial salmon catches by management region (1886- 1997). Gulf of Alaska Data Portal. df35b.304.2.] (https://knb.ecoinformatics.org/view/df35b.304.2)
+
+
+
+```{r}
+
+# Read data from a url - from the an online data bank
+
+catch_original <- read.csv(url("https://knb.ecoinformatics.org/knb/d1/mn/v2/object/df35b.302.1", method = "libcurl"), stringsAsFactors = FALSE)
+
+head(catch_original)
+
+```
+
+Remove the "All" and "notesRegCode" columns
+
+ctrl+shit+m : pipe operator shortcut %>% 
+
+```{r}
+
+catch_long <- catch_original %>%
+  select(Region, Year, Chinook, Sockeye, Coho, Pink, Chum)
+
+#or
+# select(-All, -notesRegCode)
+
+head(catch_long)
+
+```
 
 
 # Join the Region Definitions
 
 # Miscelaneous Functions
 
-```{r}
 
-salmon1 <- read.csv("C:/Users/SaraPedro/Desktop/Arctic_Data_Science/df35b.302.1.csv")
-salmon2 <- read.csv("C:/Users/SaraPedro/Desktop/Arctic_Data_Science/df35b.303.1.csv")
 
-```
+
+
 
