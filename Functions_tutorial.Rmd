@@ -14,6 +14,8 @@ knitr::opts_chunk$set(echo = TRUE)
 - convert to C
 
 ```{r}
+source("Conversions.R") # Sources functions in another file (no need to copy/paste) - need to                            make sure to specify where the file is if not in the same directory                            as current file
+
 airtemps <- c(212, 100, 32, 64, 0, -20)
 
 airtemp1 <- (airtemps[1] - 32) * 5/9
@@ -29,6 +31,7 @@ airtempF <- (airtemps - 32) * 5/9 # Still not a function because it's a simple c
 
 airtempF
 
+new_fahr_to_celsius(airtemps)
 
 ```
 
