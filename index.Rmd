@@ -1,5 +1,5 @@
 ---
-title: "Untitled"
+title: "Data Visualization"
 author: "Sara Pedro"
 date: "February 14, 2019"
 output: html_document
@@ -9,22 +9,88 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+```{r}
+  library(leaflet)
+  library(dplyr)
+  library(tidyr)
+  library(ggplot2)
+  library(DT)
 ```
 
-## Including Plots
+# Reformat the data for plotting
 
-You can also embed plots, for example:
+[Alaska Department of Fish and Game, Division of Commercial Fisheries. 2017. Daily salmon escapement counts from the OceanAK database, Alaska, 1921-2017. Knowledge Network for Biocomplexity. doi:10.5063/F1S46Q6M.]
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r}
+esc <- read.csv(url("https://knb.ecoinformatics.org/knb/d1/mn/v2/object/urn%3Auuid%3Af119a05b-bbe7-4aea-93c6-85434dcb1c5e", method = "libcurl"), stringsAsFactors = FALSE)
+
+head(esc)
+
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+* Calculate annual escapement by species and region
+* Filter for just pacific salmon (Sockeye, Chinook, Coho, Pink, Chum)
+* Create a data frame called annual_esc with the results from previous points
+
+```{r}
+
+annual_esc <- esc %>%
+  separate(sampleDate, c("year", "day", "month"), sep = "-") %>% 
+    # coerce year to numeric value
+  mutate(year = as.numeric(year)) %>% 
+  group_by(year, Species, SASAP.Region) %>% 
+  summarise(count = sum(DailyCount)) %>% 
+  filter(Species %in% c("Sockeye", "Chinook", "Coho", "Pink", "Chum")) 
+
+
+head(annual_esc)
+
+```
+
+
+# Generate some static plots
+
+```{r}
+
+ggplot(annual_esc, aes(x = Species, y = count, fill = SASAP.Region)) +
+  geom_col()
+
+# or
+
+ggplot(annual_esc) +
+  geom_col(aes(x = Species, y = count), fill = "blue") # this way I can add different data with                                                         different geoms to the same plot
+
+
+```
+
+
+If we are using the same themes for a bunch of plots, we can save them seperately
+
+```{r}
+my_theme <- theme_test() +
+  theme(legend.position = "bottom", legend.title = element_blank())
+```
+
+
+
+```{r}
+
+ggplot(filter(annual_esc, SASAP.Region == "Kodiak"), aes(year, count, color = Species)) +
+  geom_line() +
+    geom_point() +
+  ylab("Escapement (num of fish)") +
+  xlab("Year") +
+  ggtitle("Kodiak Salmon Escapement") +
+  my_theme
+
+```
+
+
+# Generate 
+
+
+
+
+
+
