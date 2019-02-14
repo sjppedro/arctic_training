@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
-```{r, warning = FALSE, message = FALSE}
+```{r, warning = FALSE, message = FALSE, echo = FALSE}
   library(leaflet)
   library(dplyr)
   library(tidyr)
@@ -100,6 +100,8 @@ p <- ggplot(annual_esc, aes(x = year, y = count, color = Species)) +
 
 p
 
+#geom_raster and geom_tile can be used to produce maps in R
+
 # Save the plot
 
 ggsave("figures/regional_escapement.png", plot = p, width = 7, height = 8, units = "in")
@@ -111,6 +113,38 @@ ggsave("figures/regional_escapement.png", plot = p, width = 7, height = 8, units
 
 # Generate an interactive map 
 
+Map the sampling locations for escapement
+
+* Find distinct lat/long/location combinations
+
+
+```{r}
+locations <- esc %>% 
+  distinct(Location, Latitude, Longitude) %>% 
+  drop_na() 
+  
+
+head(locations)
+```
+
+
+```{r, echo = FALSE}
+
+datatable(locations)
+
+```
+
+Making the map!
+
+```{r}
+leaflet(locations) %>%
+  addTiles() %>% 
+  addMarkers(lng = ~Longitude, lat = ~Latitude, popup = ~Location) 
+  #popup lets adds labels when clicking in the point
+  #can change the icons in leaflet, color points by variables, turn on and off variables
+
+
+```
 
 
 
