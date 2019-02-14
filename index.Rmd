@@ -10,12 +10,13 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
-```{r, echo = FALSE}
+```{r, warning = FALSE, message = FALSE}
   library(leaflet)
   library(dplyr)
   library(tidyr)
   library(ggplot2)
   library(DT)
+  library(scales)
 ```
 
 # Reformat the data for plotting
@@ -25,7 +26,6 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 esc <- read.csv(url("https://knb.ecoinformatics.org/knb/d1/mn/v2/object/urn%3Auuid%3Af119a05b-bbe7-4aea-93c6-85434dcb1c5e", method = "libcurl"), stringsAsFactors = FALSE)
 
-head(esc)
 
 ```
 
@@ -51,7 +51,7 @@ head(annual_esc)
 
 # Generate some static plots
 
-```{r}
+```{r, echo = FALSE}
 
 ggplot(annual_esc, aes(x = Species, y = count, fill = SASAP.Region)) +
   geom_col()
@@ -67,18 +67,21 @@ ggplot(annual_esc) +
 
 If we are using the same themes for a bunch of plots, we can save them seperately
 
-```{r}
+```{r, echo = FALSE}
 my_theme <- theme_test() +
-  theme(legend.position = "bottom", legend.title = element_blank())
+  theme(legend.position = "bottom", legend.title = element_blank(),
+        plot.title = element_text(hjust = 0.5)) 
+  
 ```
 
 
 
-```{r}
+```{r, echo = FALSE}
 
 ggplot(filter(annual_esc, SASAP.Region == "Kodiak"), aes(year, count, color = Species)) +
   geom_line() +
     geom_point() +
+  scale_y_continuous(labels = comma) +
   ylab("Escapement (num of fish)") +
   xlab("Year") +
   ggtitle("Kodiak Salmon Escapement") +
@@ -87,7 +90,26 @@ ggplot(filter(annual_esc, SASAP.Region == "Kodiak"), aes(year, count, color = Sp
 ```
 
 
-# Generate 
+```{r, fig.width= 7, fig.height= 8, echo = FALSE}
+p <- ggplot(annual_esc, aes(x = year, y = count, color = Species)) +
+  geom_line() +
+  geom_point() +
+  scale_y_continuous(labels = comma) +
+  facet_wrap(~SASAP.Region, scales = "free_y", ncol = 2) +
+  my_theme
+
+p
+
+# Save the plot
+
+ggsave("figures/regional_escapement.png", plot = p, width = 7, height = 8, units = "in")
+
+
+```
+
+
+
+# Generate an interactive map 
 
 
 
