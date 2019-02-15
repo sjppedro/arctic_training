@@ -1,0 +1,120 @@
+---
+title: "Geospatial Analysis"
+author: "Sara Pedro"
+date: "February 15, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, warning=FALSE, message=FALSE}
+library(sf)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(leaflet)
+```
+
+
+```{r}
+ak_shp_sf <- read_sf("shapefiles/ak_regions_simp.shp")
+
+head(ak_shp_sf)
+# if the geometry column is in sf format, R knows how to read it with this package
+
+```
+
+```{r}
+plot(ak_shp_sf)
+
+```
+
+```{r}
+st_crs(ak_shp_sf) #indicates the coordinate reference system in this data
+```
+ 
+Can check spatial references for projections online 
+ 
+```{r}
+ak_shp_sf <- ak_shp_sf %>% 
+  st_transform(crs = 3338) #coordinate reference system 
+
+```
+
+
+## Spatial joins
+Join the population data with the regional information
+
+```{r}
+pop <- read.csv("shapefiles/alaska_population.csv")
+```
+
+```{r}
+# Convert foreign object to a sf object
+
+pop_sf <- st_as_sf(pop,
+                   coords = c("lng", "lat"),
+                   crs = 4326,
+                   remove = F) %>% 
+# we created the geometry column readable in sf
+  st_transform(crs = 3338)
+# and now we converted it to the projection we want
+
+```
+
+Spatial joint to assign the regions to the population dataframe
+
+```{r}
+pop_joined_sf <- st_join(pop_sf, ak_shp_sf, join = st_within)
+# st_join is a spatial inner of left join
+
+plot(pop_joined_sf["region"])
+
+```
+
+## Group by and summarise
+
+Getting population in the ak_shp_sf data set
+
+Group by region
+
+```{r}
+pop_region <- pop_joined_sf %>%
+  as.data.frame() %>% 
+#group_by for sf objects (see ?group_by_sf) works a bit differently than the regular goup_by function
+  group_by(region) %>% 
+  summarise(total_pop = sum(population))
+
+head(pop_region)
+  
+```
+
+```{r}
+ak_pop_sf <- left_join(ak_shp_sf, pop_region)
+
+plot(ak_pop_sf["total_pop"])
+```
+
+Group by management area
+
+```{r}
+ak_mgmt <- ak_pop_sf %>% 
+  group_by(mgmt_area) %>% 
+  summarise(total_pop = sum(total_pop), do_union = F)
+
+plot(ak_mgmt["total_pop"])
+
+```
+
+Write shape files
+
+```{r}
+write_sf(ak_shp_sf, "shapefiles/ak_regions_population.shp") 
+```
+
+
+
+
+
