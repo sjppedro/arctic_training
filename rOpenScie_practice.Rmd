@@ -1,0 +1,76 @@
+---
+title: "rOpenScience"
+author: "Sara Pedro"
+date: "February 15, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, message=FALSE, warning=FALSE}
+library(rnoaa)
+library(rlang)
+library(tibble)
+library(ncdf4)
+library(ggplot2)
+library(mapr)
+library(spocc)
+```
+
+# Accessing buoy data using 'rnoaa'
+
+Can get information on buoy ids on the National Data Buoy Center (https://www.ndbc.noaa.gov/)
+
+```{r}
+bd <- buoy(dataset = "cwind", 
+           buoyid = 46080, 
+           year = 2018, 
+           datatype = "c")
+
+
+```
+
+
+
+```{r}
+#Explore the object
+wind_speed <- data.frame(time = as.POSIXct(bd$data$time),
+    # creates a column called time in the data frame with appropriate time format
+                         speed = bd$data$wind_spd)
+                         
+
+```
+
+
+```{r}
+ggplot(wind_speed, aes(x = time, y = speed)) +
+  geom_point() +
+  xlab("") +
+  ylab("Wind speed (m/s)") +
+  ggtitle("2018 NOAA buoy observations near Kodiak, AK") +
+  theme_test()
+
+```
+
+
+# Using the package 'mapr' to see species occurrence data sourced from many available data sources
+
+```{r}
+spp <- c("Ursus arctos", "Ursus maritimus") 
+#creates a vector of the species we are interested in
+
+dat <- occ(query = spp, 
+           from = "gbif", 
+           limit = 500, 
+           has_coords = T)
+
+map_leaflet(dat, size = 1, color = c("brown", "gray"), alpha = 1)
+
+```
+
+
+
+
+
