@@ -15,8 +15,11 @@ library(dplyr)
 library(tidyr)
 library(ggplot2)
 library(leaflet)
+library(scales)
 ```
 
+Data from:
+[Jeanette Clark, Sharis Ochs, Derek Strong, and National Historic Geographic Information System. 2018. Languages used in Alaskan households, 1990-2015. Knowledge Network for Biocomplexity. doi:10.5063/F11G0JHX]
 
 ```{r}
 ak_shp_sf <- read_sf("shapefiles/ak_regions_simp.shp")
@@ -51,6 +54,8 @@ Join the population data with the regional information
 pop <- read.csv("shapefiles/alaska_population.csv")
 ```
 
+Turn our population data.frame with latitude and longitude coordinates into an sf object. Let’s assume that the coordinate system used to reference the latitude longitude coordinates is WGS84, which has a crs number of 4236.
+
 ```{r}
 # Convert foreign object to a sf object
 
@@ -68,7 +73,7 @@ Spatial joint to assign the regions to the population dataframe
 
 ```{r}
 pop_joined_sf <- st_join(pop_sf, ak_shp_sf, join = st_within)
-# st_join is a spatial inner of left join
+# st_join is a spatial inner of left join. In addition, we want to find what region each city falls within, so we will use st_within
 
 plot(pop_joined_sf["region"])
 
@@ -114,7 +119,79 @@ Write shape files
 write_sf(ak_shp_sf, "shapefiles/ak_regions_population.shp") 
 ```
 
+Plotting maps with ggplot - allows to add a bunch of layers
+
+```{r}
+ggplot(ak_pop_sf) +
+  geom_sf(aes(fill = total_pop)) +
+  theme_bw() +
+  labs(fill = "Total population") +
+  scale_fill_continuous(low = "khaki", high = "firebrick", labels = comma) 
 
 
+```
+
+Plot more layers
+
+```{r}
+ggplot() +
+  geom_sf(data = ak_pop_sf, aes(fill = total_pop)) +
+  geom_sf(dat = pop_sf, size = 0.5) +
+  # plots the location of the points
+  theme_bw() +
+  labs(fill = "Total population") +
+  scale_fill_continuous(low = "khaki", high = "firebrick", labels = comma) 
+
+```
+
+
+## Interactive maps with leaflet
+
+
+```{r}
+# Creating a projection object in leaflet
+
+epsg3338 <- leaflet::leafletCRS(
+  crsClass = "L.Proj.CRS",
+  code = "EPSG:3338",
+  proj4def =  "+proj=aea +lat_1=55 +lat_2=65 +lat_0=50 +lon_0=-154 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs",
+  resolutions = 2^(16:7))
+
+
+```
+
+
+```{r}
+# transform to geographic coordinate sytem - leaflet needs this format
+ak_crs <- st_transform(ak_pop_sf, crs = 4326)
+pop_crs <- st_transform(pop_sf, crs = 4326)
+
+```
+
+
+```{r}
+#Creates a pallete of colors to match our data
+pal <- colorNumeric(palette = "Reds", domain = ak_crs$total_pop)
+
+#leaflet plot
+m <- leaflet(options = leafletOptions(crs = epsg3338)) %>% 
+  addPolygons(data = ak_crs,
+              fillColor = ~pal(total_pop),
+              weight = 1,
+              color ="black",
+              label = ~region,
+              fillOpacity = 1) %>% 
+  addCircleMarkers(data = pop_crs,
+                   lat = ~lat,
+                   lng = ~lng,
+                   radius = 2,
+                   fillColor = "black",
+                   fillOpacity = 1,
+                   weight = 0.25,
+                   color = "black",
+                   label = ~city)
+
+m
+```
 
 
