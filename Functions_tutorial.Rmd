@@ -84,7 +84,17 @@ fahr_to_celsius <- function(fahr) {
 
 ```
 
+Running the function we created in package we created - mytools
 
+```{r}
+library(mytools)
+environment_info("Works in Rmd")
 
+```
 
+To install a package from someone's R project in GitHub (could be public or from a collaborator)
+
+```{r}
+#devtools::install_github("sjppedro/mytools")
+```
 
